@@ -1,17 +1,13 @@
 package com.example.droame_assignment;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 
+import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -24,15 +20,31 @@ import androidx.navigation.ui.NavigationUI;
 import com.example.droame_assignment.databinding.ActivityMainBinding;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
 
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
-    private ActivityResultLauncher<PickVisualMediaRequest> pickMultipleMedia;
 
-
-
+//    private List<Uri> videos;
+//
+//    private ActivityResultLauncher<PickVisualMediaRequest>  pickMultipleMedia = registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(3), new ActivityResultCallback<List<Uri>>(){
+//        @Override
+//        public void onActivityResult(List<Uri> uris) {
+//            videos = uris;
+//            if (!uris.isEmpty()) {
+//                Log.d("PhotoPicker", "Number of items selected: " + uris.size());
+//            } else {
+//                Log.d("PhotoPicker", "No media selected");
+//            }
+//            for(int i=0;i<videos.size();i++)
+//            {
+//                Log.i("PhotoPicker", "Uri"+ videos.get(i));
+//            }
+//        }
+//    });
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,26 +65,17 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        pickMultipleMedia =
-                registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(3), uris -> {
-                    // Callback is invoked after the user selects media items or closes the
-                    // photo picker.
-                    if (!uris.isEmpty()) {
-                        Log.d("PhotoPicker", "Number of items selected: " + uris.size());
-                    } else {
-                        Log.d("PhotoPicker", "No media selected");
-                    }
-                });
-        findViewById(R.id.pick_video_button).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Log.i("1","inside on click");
 
-                    pickMultipleMedia.launch(new PickVisualMediaRequest.Builder()
-                            .setMediaType(ActivityResultContracts.PickVisualMedia.VideoOnly.INSTANCE)
-                            .build());
-                }
-            });
+//        findViewById(R.id.pick_video_button).setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    Log.i("1","inside on click");
+//
+//                    pickMultipleMedia.launch(new PickVisualMediaRequest.Builder()
+//                            .setMediaType(ActivityResultContracts.PickVisualMedia.VideoOnly.INSTANCE)
+//                            .build());
+//                }
+//            });
 
 
 
@@ -87,22 +90,8 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //                });
 //
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            System.out.println("1");
-//            Log.i("2","inside build version");
-//            findViewById(R.id.pick_video_button).setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    Log.i("1","inside on click");
-//                    final int maxNumPhotosAndVideos = 3;
-//
-//                    Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
-//                    intent.setType("video/*");
-//                    intent.putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, maxNumPhotosAndVideos);
-//                    pickMedia.launch(intent);
-//
-//                }
-//            });
+
+
         return ;
         }
 
