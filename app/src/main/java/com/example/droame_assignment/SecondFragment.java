@@ -63,44 +63,14 @@ String vid1,vid2,vid3;
             }
         });
     }
-    final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
 
-    private void requestPermission() {
-        Log.i("PhotoPicker","requestPermission");
-        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) {
-            ActivityCompat
-                    .requestPermissions(getActivity(), new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_ASK_PERMISSIONS);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        Log.i("PhotoPicker","requestPermission2");
-        switch (requestCode) {
-            case REQUEST_CODE_ASK_PERMISSIONS:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission Granted
-                    Toast.makeText(getActivity(), "Permission Granted", Toast.LENGTH_SHORT)
-                            .show();
-                } else {
-                    // Permission Denied
-                    Toast.makeText(getActivity(), "Permission Denied", Toast.LENGTH_SHORT)
-                            .show();
-                }
-                break;
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
     final String outPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()+"/droame_assignment_"+"merged_video.mp4";
     //File root = new File(outPath);
     private void mergeVideos() {
 
         //Log.i("PhotoPicker","Boolean"+root.mkdirs());
         List<EpVideo> epVideos =  new ArrayList<>();
-//        epVideos.add(new EpVideo (vid1.getPath())); // Video 1
-//        epVideos.add(new EpVideo (vid2.getPath()));
-//        epVideos.add(new EpVideo (vid3.getPath()));
+
         Log.i("Photopicker","In1");
         epVideos.add(new EpVideo (vid1)); // Video 1
         epVideos.add(new EpVideo (vid2));
