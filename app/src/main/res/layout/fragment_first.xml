@@ -45,7 +45,7 @@
         android:layout_marginTop="212dp"
         android:backgroundTint="#009587"
         android:fontFamily="casual"
-        android:text="Pick three videos"
+        android:text="Pick videos (max 3)"
         android:textColor="#1A2222"
         android:textSize="24sp"
         android:textStyle="bold|italic"
