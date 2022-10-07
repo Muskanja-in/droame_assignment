@@ -34,7 +34,7 @@ public class FirstFragment extends Fragment {
 
     private FragmentFirstBinding binding;
 //    private ActivityResultLauncher<Intent> pickMedia;
-private List<String> videos = new ArrayList<>();
+private String[] videos;
 
 //    private ActivityResultLauncher<PickVisualMediaRequest>  pickMultipleMedia = registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(3), new ActivityResultCallback<List<Uri>>(){
 //        @Override
@@ -52,16 +52,18 @@ private List<String> videos = new ArrayList<>();
 //
 //        }
 //    });
+int count=0;
 private ActivityResultLauncher<Intent>  pickMultipleMedia = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>(){
     @Override
     public void onActivityResult(ActivityResult result) {
         if (result.getResultCode() == RESULT_OK) {
             Intent data = result.getData();
             Log.i("Photopicker","Data"+data);
-            int count = data.getClipData().getItemCount();
+            count = data.getClipData().getItemCount();
+            videos = new String[count];
             for (int i = 0; i < count; i = i + 1) {
                 Uri imageUri = data.getClipData().getItemAt(i).getUri();
-                videos.add(getRealPathFromURI(imageUri));
+                videos[i]=getRealPathFromURI(imageUri);
                 Log.i("PhotoPicker", "Uri" + imageUri);
                 Log.i("PhotoPicker", "Path" + getRealPathFromURI(imageUri));
             }}
@@ -154,12 +156,17 @@ private ActivityResultLauncher<Intent>  pickMultipleMedia = registerForActivityR
             public void onClick(View view) {
 //                NavHostFragment.findNavController(FirstFragment.this)
 //                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
-                Log.i("PhotoPicker","In");
-                FirstFragmentDirections.ActionFirstFragmentToSecondFragment action = FirstFragmentDirections.actionFirstFragmentToSecondFragment(videos.get(0),videos.get(1),videos.get(2));
+                if(count>1){
+                    Log.i("PhotoPicker","In");
+                FirstFragmentDirections.ActionFirstFragmentToSecondFragment action = FirstFragmentDirections.actionFirstFragmentToSecondFragment(videos);
 
 //                FirstFragmentDirections.ActionFirstFragmentToSecondFragment action = FirstFragmentDirections.actionFirstFragmentToSecondFragment(videos.get(0).toString(),videos.get(1).toString(),videos.get(2).toString());
                 NavHostFragment.findNavController(FirstFragment.this).navigate(action);
             }
+            else
+            {
+                Toast.makeText(getActivity(), "Select more than 1 video", Toast.LENGTH_LONG).show();
+            }}
         });
         view.findViewById(R.id.pick_video_button).setOnClickListener(new View.OnClickListener() {
 //            @Override
