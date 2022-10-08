@@ -20,20 +20,35 @@
         android:id="@+id/button_second"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="76dp"
         android:backgroundTint="#009587"
-        android:text="@string/previous"
+        android:text="BACK"
         android:textColor="#1A2222"
+        android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textview_second" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <VideoView
         android:id="@+id/videoView1"
-        android:layout_width="335dp"
-        android:layout_height="327dp"
-        app:layout_constraintBottom_toTopOf="@+id/button_second"
+        android:layout_width="368dp"
+        android:layout_height="266dp"
+        android:layout_marginTop="124dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/download_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:backgroundTint="#009486"
+        android:fontFamily="sans-serif-medium"
+        android:text="Download Video"
+        android:textColor="#1A2222"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/videoView1" />
 </androidx.constraintlayout.widget.ConstraintLayout>

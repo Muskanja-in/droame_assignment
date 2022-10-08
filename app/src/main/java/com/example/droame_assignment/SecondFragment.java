@@ -3,6 +3,7 @@ package com.example.droame_assignment;
 import static com.arthenica.mobileffmpeg.Config.RETURN_CODE_CANCEL;
 import static com.arthenica.mobileffmpeg.Config.RETURN_CODE_SUCCESS;
 
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -31,6 +32,8 @@ import androidx.navigation.fragment.NavHostFragment;
 
 
 import com.arthenica.mobileffmpeg.Config;
+import com.arthenica.mobileffmpeg.FFprobe;
+import com.arthenica.mobileffmpeg.MediaInformation;
 import com.example.droame_assignment.databinding.FragmentSecondBinding;
 import com.googlecode.mp4parser.BasicContainer;
 import com.googlecode.mp4parser.authoring.Track;
@@ -45,8 +48,8 @@ import com.googlecode.mp4parser.authoring.tracks.AppendTrack;
 //import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
 
 
-
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -65,9 +68,10 @@ import VideoHandle.EpEditor;
 import VideoHandle.EpVideo;
 import VideoHandle.OnEditorListener;
 
-public class SecondFragment extends Fragment {
+public class SecondFragment<final_file> extends Fragment {
 
     private FragmentSecondBinding binding;
+
 
     @Override
     public View onCreateView(
@@ -82,9 +86,10 @@ public class SecondFragment extends Fragment {
 
 
     String[] vids;
+
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        vids=SecondFragmentArgs.fromBundle(getArguments()).getVideos();
+        vids = SecondFragmentArgs.fromBundle(getArguments()).getVideos();
 
         try {
             addTransition();
@@ -97,105 +102,182 @@ public class SecondFragment extends Fragment {
         vv.setVideoURI(uri);
         vv.start();
 
-        vv.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//        vv.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//            @Override
+//            public void onCompletion(MediaPlayer mp) {
+//              mp.setLooping(true);
+//            }
+//        });
+        vv.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
-            public void onCompletion(MediaPlayer mp) {
-//                finish();
+            public void onPrepared(MediaPlayer mp) {
+                mp.setLooping(true);
             }
         });
         //mergeVideos();
         binding.buttonSecond.setOnClickListener(new View.OnClickListener() {
+
+
             @Override
             public void onClick(View view) {
+                boolean deleted = filex.delete();
                 NavHostFragment.findNavController(SecondFragment.this)
                         .navigate(R.id.action_SecondFragment_to_FirstFragment);
             }
+
+        });
+        binding.downloadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String dstPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + File.separator + "droame_assigment" + File.separator;
+                File dst = new File(dstPath);
+
+                try {
+                    exportFile(filex, dst);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         });
     }
+
+    private File exportFile(File src, File dst) throws IOException {
+
+        //if folder does not exist
+        if (!dst.exists()) {
+            if (!dst.mkdir()) {
+                return null;
+            }
+        }
+
+
+        File expFile = new File(dst.getPath() + File.separator + "merged_video" + ts + ".mp4");
+        FileChannel inChannel = null;
+        FileChannel outChannel = null;
+
+        try {
+            inChannel = new FileInputStream(src).getChannel();
+            outChannel = new FileOutputStream(expFile).getChannel();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            inChannel.transferTo(0, inChannel.size(), outChannel);
+        } finally {
+            if (inChannel != null)
+                inChannel.close();
+            if (outChannel != null)
+                outChannel.close();
+        }
+
+        return expFile;
+    }
+
     public File createVideoPath(int i) throws IOException {
 //        String imageFileName="transition";
-        String imageFileName=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()+"/transition"+i+".mp4";
+        String imageFileName = "/transition" + i;
 //        this.getActivity().getFilesDir().getAbsolutePath()
-        File storageDir=new File(this.getActivity().getFilesDir().getAbsolutePath());
+        File storageDir = new File(requireContext().getFilesDir().getAbsolutePath());
         if (storageDir != null) {
             if (!storageDir.exists()) storageDir.mkdirs();
         }
-//        return File.createTempFile(imageFileName, ".mp4", storageDir);
-        return new File(imageFileName);
+        //return File.createTempFile(imageFileName, ".mp4", storageDir);
+        //return new File(imageFileName);
+        return new File(storageDir + "/" + imageFileName + ".mp4");
     }
+
     List<String> out_paths;
-    Long tsLong = System.currentTimeMillis()/1000;
+    Long tsLong = System.currentTimeMillis() / 1000;
     String ts = tsLong.toString();
-    final String outpath_ = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()+"/droame_assignment_1"+ts+"_merged_video.mp4";
-    File final_file=new File(outpath_);
-    String outPath = final_file.getPath();
+    //final String outpath_ = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()+"/droame_assignment_1"+ts+"_merged_video.mp4";
+    //final String outpath_ = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()]
+    String outPath = "";
+    File filex;
+
     private void addTransition() throws IOException {
 
-       out_paths = new ArrayList<>();
+        filex = createVideoPath(5);
+        //final String outPath1 = file1.getPath();
+        outPath = filex.getPath();
+        out_paths = new ArrayList<>();
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        for(int i=0;i< vids.length;i++)
-        {
-            File file1=createVideoPath(i);
+        for (int i = 0; i < vids.length; i++) {
+            File file1 = createVideoPath(i);
             final String outPath1 = file1.getPath();
-            Log.i("Photopicker","Outpaths"+outPath1);
+            Log.i("Photopicker", "Outpaths" + outPath1);
 //use one of overloaded setDataSource() functions to set your data source
             retriever.setDataSource(getContext(), Uri.fromFile(new File(vids[i])));
             String time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            long timeInMillisec = Long.parseLong(time );
-            timeInMillisec=timeInMillisec/1000;
-            timeInMillisec-=5;
+            long timeInMillisec = Long.parseLong(time);
+            timeInMillisec = timeInMillisec / 1000;
+            timeInMillisec -= 5;
 
-            String[] cmd = new String[]{"-y","-i", vids[i], "-vf", "fade=t=in:st=0:d=0.2:color=white,fade=t=out:st=" + timeInMillisec + ":d=0.2:color=white", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", "-acodec", "copy", outPath1};
-            exe_cmd1(cmd);
+            String[] cmd = new String[]{"-y", "-i", vids[i], "-vf", "fade=t=in:st=0:d=0.2:color=white,fade=t=out:st=" + timeInMillisec + ":d=0.2:color=white", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", "-acodec", "copy", outPath1};
+            exe_cmd1(cmd, 1);
             out_paths.add(outPath1);
+            String[] cmd2 = new String[]{"-i", out_paths.get(i), "-show_streams", "-select_streams", "a", "-loglevel", "error"};
+            check_audio(out_paths.get(i), i);
+
+            //Log.i("Photopicker","MediaInfo"+s.getMediaProperties());
         }
         retriever.release();
 
-        if(vids.length==2)
-        {
-            File file1=createVideoPath(5);
-            final String outPath2 = file1.getPath();
+        if (vids.length == 2) {
+//            File file1=createVideoPath(5);
+//            final String outPath2 = file1.getPath();
             String[] cmd1 = new String[]{"-y", "-i", out_paths.get(0), "-i", out_paths.get(1), "-strict", "experimental", "-filter_complex",
-                "[0:v]scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v0];[1:v] scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v1];[v0][0:a][v1][1:a] concat=n=2:v=1:a=1","-vsync","2",
-                "-ab", "48000", "-ac", "2", "-ar", "22050", "-s", "1920x1080", "-vcodec", "libx264", "-crf", "27",
-                "-q", "4", "-preset", "ultrafast", outPath};
+                    "[0:v]scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v0];[1:v] scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v1];[v0][0:a][v1][1:a] concat=n=2:v=1:a=1", "-vsync", "2",
+                    "-ab", "48000", "-ac", "2", "-ar", "22050", "-s", "1920x1080", "-vcodec", "libx264", "-crf", "27",
+                    "-q", "4", "-preset", "ultrafast", outPath};
 //            String complexCommand[] = {"-y", "-i", out_paths.get(0), "-i", out_paths.get(1), "-filter_complex",
 //                    "[0:v]scale=480x640,setsar=1[v0];[1:v]scale=480x640,setsar=1[v1];[v0][0:a][v1][1:a]concat=n=2:v=1:a=1",
 //                    "-ab", "48000", "-ac", "2", "-ar", "22050", "-s", "480x640", "-vcodec", "libx264","-crf","27","-preset", "ultrafast", outPath};
-        exe_cmd1(cmd1);
-        Log.i("Photopicker","Success");
-        }
-        else
-        {
-            File file1=createVideoPath(4);
+            exe_cmd1(cmd1, 2);
+            Log.i("Photopicker", "Success");
+        } else {
+            File file1 = createVideoPath(4);
             final String outPath1 = file1.getPath();
             String[] cmd1 = new String[]{"-y", "-i", out_paths.get(0), "-i", out_paths.get(1), "-strict", "experimental", "-filter_complex",
-                    "[0:v]scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v0];[1:v] scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v1];[v0][0:a][v1][1:a] concat=n=2:v=1:a=1","-vsync","2",
+                    "[0:v]scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v0];[1:v] scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v1];[v0][0:a][v1][1:a] concat=n=2:v=1:a=1", "-vsync", "2",
                     "-ab", "48000", "-ac", "2", "-ar", "22050", "-s", "1920x1080", "-vcodec", "libx264", "-crf", "27",
                     "-q", "4", "-preset", "ultrafast", outPath1};
-            exe_cmd1(cmd1);
-            File file2=createVideoPath(5);
-            final String outPath2 = file2.getPath();
-        String[] cmd2 = new String[]{"-y", "-i", outPath1, "-i", out_paths.get(2), "-strict", "experimental", "-filter_complex",
-                "[0:v]scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v0];[1:v] scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v1];[v0][0:a][v1][1:a] concat=n=2:v=1:a=1","-vsync","2",
-                "-ab", "48000", "-ac", "2", "-ar", "22050", "-s", "1920x1080", "-vcodec", "libx264", "-crf", "27",
-                "-q", "4", "-preset", "ultrafast", outPath};
-            exe_cmd1(cmd2);
-            Log.i("Photopicker","Success");
+            exe_cmd1(cmd1, 3);
+            //File file2=createVideoPath(5);
+            //final String outPath2 = file2.getPath();
+            String[] cmd2 = new String[]{"-y", "-i", outPath1, "-i", out_paths.get(2), "-strict", "experimental", "-filter_complex",
+                    "[0:v]scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v0];[1:v] scale=iw*min(1920/iw\\,1080/ih):ih*min(1920/iw\\,1080/ih), pad=1920:1080:(1920-iw*min(1920/iw\\,1080/ih))/2:(1080-ih*min(1920/iw\\,1080/ih))/2,setsar=1:1[v1];[v0][0:a][v1][1:a] concat=n=2:v=1:a=1", "-vsync", "2",
+                    "-ab", "48000", "-ac", "2", "-ar", "22050", "-s", "1920x1080", "-vcodec", "libx264", "-crf", "27",
+                    "-q", "4", "-preset", "ultrafast", outPath};
+            exe_cmd1(cmd2, 4);
+            Log.i("Photopicker", "Success");
         }
 
     }
 
-    private void exe_cmd1(String[] cmd)
-    {
+    private void check_audio(String path_, int i) throws IOException {
+        MediaInformation s = FFprobe.getMediaInformation(path_);
+        Long x = s.getNumberProperty("nb_streams");
+        Log.i("PhotoPicker", "nb_streams" + x);
+        if (x == 1) {
+            File file1 = createVideoPath(10 + i);
+            final String outPath1 = file1.getPath();
+            String[] cmd3 = new String[]{"-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100", "-i", path_, "-c:v", "copy", "-c:a", "aac", "-shortest", outPath1};
+            exe_cmd1(cmd3, 5);
+            out_paths.set(i, outPath1);
+        }
+
+    }
+
+    private void exe_cmd1(String[] cmd, int i) {
         int rc = FFmpeg.execute(cmd);
 
         if (rc == RETURN_CODE_SUCCESS) {
-            Log.i("PhotoPicker", "Command execution completed successfully.");
+            Log.i("PhotoPicker", "Command execution completed successfully." + i);
         } else if (rc == RETURN_CODE_CANCEL) {
-            Log.i("PhotoPicker", "Command execution cancelled by user.");
+            Log.i("PhotoPicker", "Command execution cancelled by user." + i);
         } else {
-            Log.i("PhotoPicker", String.format("Command execution failed with rc=%d and the output below.", rc));
+            Log.i("PhotoPicker", String.format("Command execution failed with rc=%d and the output below.", rc) + " " + i);
             Config.printLastCommandOutput(Log.INFO);
         }
     }
